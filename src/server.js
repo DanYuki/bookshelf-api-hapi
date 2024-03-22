@@ -1,17 +1,17 @@
-const express = require('express');
-
-// eslint-disable-next-line import/no-extraneous-dependencies
-const bodyParser = require('body-parser');
+const Hapi = require('@hapi/hapi');
 
 const routes = require('./routes');
 
-const app = express();
-const port = 9000;
+const init = async () => {
+    const server = Hapi.server({
+        port: 9000,
+        host: 'localhost',
+    });
 
-app.use(bodyParser.json());
-app.use('/', routes);
+    server.route(routes);
 
-app.listen(port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`The app is listening on localhost:${port}`);
-});
+    await server.start();
+    console.log(`Server berjalan di ${server.info.uri}`);
+};
+
+init();

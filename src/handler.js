@@ -1,26 +1,24 @@
 const { nanoid } = require('nanoid');
 const books = require('./books');
 
-const storeBook = (req, res) => {
+const storeBook = (req, h) => {
     // Handle storing book
     const {
         name, year, author, summary, publisher, pageCount, readPage, reading,
-    } = req.body;
+    } = req.payload;
 
     if (!name || name.trim() === '') {
-        res.status(400).send({
+        return h.response({
             status: 'fail',
             message: 'Gagal menambahkan buku. Mohon isi nama buku',
-        });
-        return;
+        }).code(400);
     }
 
     if (readPage > pageCount) {
-        res.status(400).send({
+        return h.response({
             status: 'fail',
             message: 'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount',
-        });
-        return;
+        }).code(400);
     }
 
     const id = nanoid(16);
@@ -48,23 +46,22 @@ const storeBook = (req, res) => {
     const isSuccess = books.filter((book) => book.id === id).length > 0;
 
     if (isSuccess) {
-        res.status(201).send({
+        return h.response({
             status: 'success',
             message: 'Buku berhasil ditambahkan',
             data: {
                 bookId: id,
             },
-        });
-        return;
+        }).code(201);
     }
 
-    res.status(500).send({
+    return h.response({
         status: 'fail',
         message: 'Catatan gagal ditambahkan',
-    });
+    }).code(500);
 };
 
-const getAllBooks = (req, res) => {
+const getAllBooks = (req, h) => {
     // Get all book data
     const { name, reading, finished } = req.query;
 
@@ -87,7 +84,7 @@ const getAllBooks = (req, res) => {
         );
     }
 
-    const response = {
+    return h.response({
         status: 'success',
         data: {
             books: filteredBooks.map((book) => ({
@@ -96,55 +93,50 @@ const getAllBooks = (req, res) => {
                 publisher: book.publisher,
             })),
         },
-    };
-
-    res.status(200).send(response);
+    }).code(200);
 };
 
-const getBookById = (req, res) => {
+const getBookById = (req, h) => {
     // Get specific book data by bookId
     const { id } = req.params;
 
     const book = books.filter((b) => b.id === id)[0];
 
     if (book !== undefined) {
-        res.status(200).send({
+        return h.response({
             status: 'success',
             data: {
                 book,
             },
-        });
-        return;
+        }).code(200);
     }
 
-    res.status(404).send({
+    return h.response({
         status: 'fail',
         message: 'Buku tidak ditemukan',
-    });
+    }).code(404);
 };
 
-const editBookById = (req, res) => {
+const editBookById = (req, h) => {
     const { id } = req.params;
 
     const {
         name, year, author, summary, publisher, pageCount, readPage, reading,
-    } = req.body;
+    } = req.payload;
     const updatedAt = new Date().toISOString();
 
     if (!name || name.trim() === '') {
-        res.status(400).send({
+        return h.response({
             status: 'fail',
             message: 'Gagal memperbarui buku. Mohon isi nama buku',
-        });
-        return;
+        }).code(400);
     }
 
     if (readPage > pageCount) {
-        res.status(400).send({
+        return h.response({
             status: 'fail',
             message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
-        });
-        return;
+        }).code(400);
     }
 
     const index = books.findIndex((book) => book.id === id);
@@ -163,35 +155,33 @@ const editBookById = (req, res) => {
             updatedAt,
         };
 
-        res.status(200).send({
+        return h.response({
             status: 'success',
             message: 'Buku berhasil diperbarui',
-        });
-        return;
+        }).code(200);
     }
-    res.status(404).send({
+    return h.response({
         status: 'fail',
         message: 'Gagal memperbarui buku. Id tidak ditemukan',
-    });
+    }).code(404);
 };
 
-const deleteBookById = (req, res) => {
+const deleteBookById = (req, h) => {
     // Delete a book by bookId
     const { id } = req.params;
 
     const index = books.findIndex((book) => book.id === id);
     if (index !== -1) {
         books.splice(index, 1);
-        res.status(200).send({
+        return h.response({
             status: 'success',
             message: 'Buku berhasil dihapus',
-        });
-        return;
+        }).code(200);
     }
-    res.status(404).send({
+    return h.response({
         status: 'fail',
         message: 'Buku gagal dihapus. Id tidak ditemukan',
-    });
+    }).code(404);
 };
 
 module.exports = {
